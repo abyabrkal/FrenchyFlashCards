@@ -7,11 +7,18 @@ import pandas
 import random
 
 BACKGROUND_COLOR = "#B1DDC6"
-
-data = pandas.read_csv('french_words.csv')
-to_learn = data.to_dict(orient="records")
-
+learned = {}
 current_card = {}
+to_learn = {}
+
+try:
+    data = pandas.read_csv('data/words_to_learn.csv')
+except FileNotFoundError:
+    original_data = pandas.read_csv("data/french_words.csv")
+    to_learn = original_data.to_dict(orient="records")
+else:
+    to_learn = data.to_dict(orient="records")
+
 
 
 def flip_card():
@@ -29,6 +36,15 @@ def next_card():
     canvas.itemconfig(canvas_image, image=fcard_img)
     flip_timer = window.after(3000, func=flip_card)
 
+
+def is_known():
+    global learned
+    learned.update(current_card)
+    to_learn.remove(current_card)
+
+    data = pandas.DataFrame(to_learn)
+    data.to_csv("data/words_to_learn.csv", index=False)
+    next_card()
 
 window = Tk()
 window.title("FrenchyFlashCards")
@@ -54,7 +70,7 @@ wrong_button.config(highlightthickness=0)
 wrong_button.grid(row=1, column=0)
 
 right_image = PhotoImage(file="./images/right.png")
-right_button = Button(image=right_image, command=next_card)
+right_button = Button(image=right_image, command=is_known)
 right_button.config(highlightthickness=0)
 right_button.grid(row=1, column=1)
 
